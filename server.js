@@ -34,7 +34,8 @@ app.get("/api/jobs", (req, res) => {
 app.post("/api/jobs", (req, res) => {
   const { company, position } = req.body;
   if (!company || !position) {
-    return res.status(400).json({ msg: "Please provide all details" });
+    res.status(400).json({ msg: "Please provide all details" });
+    return;
   }
   const id = nanoid(10);
   const job = { id, company, position };
@@ -47,9 +48,44 @@ app.get("/api/jobs/:id", (req, res) => {
   const { id } = req.params;
   const job = jobs.find((job) => job.id === id);
   if (!job) {
-    return res.status(404).json({ msg: `no job with ID ${id}` });
+    res.status(404).json({ msg: `No job with ID ${id}` });
+    return;
   }
   res.status(200).json({ job });
+});
+
+// Edit Job
+app.patch("/api/jobs/:id", (req, res) => {
+  const { company, position } = req.body;
+  if (!company || !position) {
+    res.status(400).json({ msg: "Please provide all details" });
+    return;
+  }
+  const { id } = req.params;
+  const job = jobs.find((job) => job.id === id);
+  if (!job) {
+    res.status(404).json({ msg: `No job with ID ${id}` });
+    return;
+  }
+  job.company = company;
+  job.position = position;
+
+  res.status(200).json({ msg: "job modified", job });
+});
+
+// Delete Job
+app.delete("/api/jobs/:id", (req, res) => {
+  const { id } = req.params;
+  const job = jobs.find((job) => job.id === id);
+  if (!job) {
+    res.status(404).json({ msg: `No job with ID ${id}` });
+    return;
+  }
+
+  const newJobs = jobs.filter((job) => job.id !== id);
+  jobs = newJobs;
+
+  res.status(200).json({ msg: "Job deleted" });
 });
 
 const port = process.env.PORT || 5100;
