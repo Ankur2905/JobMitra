@@ -6,6 +6,8 @@ const app = express();
 import morgan from "morgan";
 import mongoose from "mongoose";
 
+
+
 import jobRouter from "./routes/jobRouter.js";
 
 import errorHandlerMiddleware from "./middleware/errorHandlerMiddleware.js";
@@ -20,10 +22,6 @@ app.get("/", (req, res) => {
   res.send("Hello There...");
 });
 
-app.post("/", (req, res) => {
-  console.log(req);
-  res.json({ message: "data received", data: req.body });
-});
 
 app.use("/api/jobs", jobRouter);
 
