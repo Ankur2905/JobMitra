@@ -5,25 +5,29 @@ import express from "express";
 const app = express();
 import morgan from "morgan";
 import mongoose from "mongoose";
-
-
+import cookieParser from "cookie-parser";
 
 import jobRouter from "./routes/jobRouter.js";
+import authRouter from "./routes/authRouter.js";
+import userRouter from "./routes/userRouter.js";
 
 import errorHandlerMiddleware from "./middleware/errorHandlerMiddleware.js";
+import { authenticateUser } from "./middleware/authMiddleware.js";
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
+app.use(cookieParser());
 app.use(express.json());
 
 app.get("/", (req, res) => {
   res.send("Hello There...");
 });
 
-
-app.use("/api/jobs", jobRouter);
+app.use("/api/jobs", authenticateUser, jobRouter);
+app.use("/api/users", authenticateUser, userRouter);
+app.use("/api/auth", authRouter);
 
 app.use("*", (req, res) => {
   res.status(404).json({ msg: "Not found" });

@@ -1,8 +1,13 @@
 import { body, param, validationResult } from "express-validator";
-import { BadRequestError, NotFoundError } from "../errors/customErrors.js";
+import {
+  BadRequestError,
+  NotFoundError,
+  UnauthorizedError,
+} from "../errors/customErrors.js";
 import { JOB_STATUS, JOB_TYPE } from "../utils/constants.js";
 import mongoose from "mongoose";
 import Job from "../models/JobModel.js";
+import User from "../models/UserModel.js";
 
 const withValidationErrors = (validateValues) => {
   return [
@@ -13,6 +18,9 @@ const withValidationErrors = (validateValues) => {
         const errorMessages = errors.array().map((error) => error.msg);
         if (errorMessages[0].startsWith("no job")) {
           throw new NotFoundError(errorMessages);
+        }
+        if (errorMessages[0].startsWith("not authorized")) {
+          throw new UnauthorizedError("not auhtorized to access this route");
         }
         throw new BadRequestError(errorMessages);
       }
@@ -34,7 +42,7 @@ export const validateJobInput = withValidationErrors([
 ]);
 
 export const validateIdParam = withValidationErrors([
-  param("id").custom(async (value) => {
+  param("id").custom(async (value, { req }) => {
     const isValidId = mongoose.Types.ObjectId.isValid(value);
     if (!isValidId) {
       throw new BadRequestError("invalid MongoDB id");
@@ -43,5 +51,56 @@ export const validateIdParam = withValidationErrors([
     if (!job) {
       throw new NotFoundError(`no job with ID ${value}`);
     }
+    const isAdmin = req.user.role === "admin";
+    const isOwner = req.user.userId === job.createdBy.toString();
+
+    if (!isAdmin && !isOwner)
+      throw new UnauthorizedError("not auhtorized to access this route");
   }),
+]);
+
+export const validateRegisterInput = withValidationErrors([
+  body("name").notEmpty().withMessage("name is required"),
+  body("email")
+    .notEmpty()
+    .withMessage("email is required")
+    .isEmail()
+    .withMessage("invalid email format")
+    .custom(async (email) => {
+      const user = await User.findOne({ email });
+      if (user) {
+        throw new BadRequestError("email already exists");
+      }
+    }),
+  body("password")
+    .notEmpty()
+    .withMessage("password is required")
+    .isLength({ min: 6 })
+    .withMessage("password must be at least 6 characters long"),
+  body("lastName").notEmpty().withMessage("last name is required"),
+]);
+
+export const validateLoginInput = withValidationErrors([
+  body("email")
+    .notEmpty()
+    .withMessage("email is required")
+    .isEmail()
+    .withMessage("invalid email format"),
+  body("password").notEmpty().withMessage("password is required"),
+]);
+
+export const validateUpdateUserInput = withValidationErrors([
+  body("name").notEmpty().withMessage("name is required"),
+  body("email")
+    .notEmpty()
+    .withMessage("email is required")
+    .isEmail()
+    .withMessage("invalid email format")
+    .custom(async (email) => {
+      const user = await User.findOne({ email });
+      if (user && user._id.toString() !== req.user.userId) {
+        throw new BadRequestError("email already exists");
+      }
+    }),
+  body("lastName").notEmpty().withMessage("last name is required"),
 ]);
