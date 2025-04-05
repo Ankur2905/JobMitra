@@ -1,9 +1,5 @@
-import {
-  Form,
-  redirect,
-  useNavigation,
-} from "react-router-dom";
-import { FormRow, FormRowSelect } from "../components";
+import { Form, redirect } from "react-router-dom";
+import { FormRow, FormRowSelect, SubmitBtn } from "../components";
 import { JOB_STATUS, JOB_TYPE } from "../../../utils/constants";
 import { toast } from "react-toastify";
 import customFetch from "../utils/customFetch";
@@ -16,7 +12,7 @@ export const action = async ({ request }) => {
   try {
     await customFetch.post("/jobs", data);
     toast.success("job added successfully");
-    return redirect("all-jobs")
+    return redirect("all-jobs");
   } catch (error) {
     toast.error(error?.response?.data?.msg);
     return error;
@@ -24,8 +20,6 @@ export const action = async ({ request }) => {
 };
 
 const AddJob = () => {
-  const navigation = useNavigation();
-  const isSubmitting = navigation.state === "submitting";
   return (
     <Wrapper>
       <Form method="post" className="form">
@@ -51,13 +45,7 @@ const AddJob = () => {
             defaultValue={JOB_TYPE.FULL_TIME}
             list={Object.values(JOB_TYPE)}
           />
-          <button
-            type="submit"
-            className="btn btn-block form-btn"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "submitting..." : "submit"}
-          </button>
+          <SubmitBtn formBtn />
         </div>
       </Form>
     </Wrapper>
