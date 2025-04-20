@@ -15,7 +15,7 @@ const Landing = () => {
             job <span>tracking</span> app
           </h1>
           <p>
-            Jobify is your personal job-tracking companion, helping you organize
+            JobMitra is your personal job-tracking companion, helping you organize
             and manage your job applications efficiently. Track applied jobs,
             update statuses, and visualize progress—all in one place. Simplify
             your job hunt with Jobify!
